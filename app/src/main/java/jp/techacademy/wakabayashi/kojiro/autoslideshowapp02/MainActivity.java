@@ -24,7 +24,7 @@ import java.util.TimerTask;
 import android.os.Handler;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    
+
     private static final int PERMISSIONS_REQUEST_CODE = 100;
 
     Button mPlayButton;
@@ -124,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cursor.close();
     }
 
+
+
     @Override
     public void onClick(final View v) {
 
@@ -139,12 +141,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
        final int ccount = cursor.getCount();
        Log.d("Position0(タイマー起動前）", String.valueOf(startPosition));
+
+
         if (v.getId() == R.id.play_button) {
             Log.d("UI_PARTS", "ボタン1をタップしました");
 
             if(isStart == false) {
                 isStart = true;
                 mPlayButton.setText("停止");
+
+                mBackButton.setEnabled(false);
+                mNextButton.setEnabled(false);
+
+
                 // タイマーの作成
                 mTimer = new Timer();
                 // タイマーの始動
@@ -190,56 +199,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 cursor.close();
                 mTimer.cancel();
 
+                mBackButton.setEnabled(true);
+                mNextButton.setEnabled(true);
+
             }
 
         } else if (v.getId() == R.id.back_button) {
             Log.d("UI_PARTS", "ボタン2をタップしました");
 
-            Log.d("カーソルの位置がBeforeFirstかどうか", String.valueOf(cursor.isBeforeFirst()));
-            if (startPosition > 1) {
-                if (cursor.moveToPosition(startPosition)) {
-                    cursor.moveToPrevious();
+             if(isStart == false) {
 
-                    Log.d("Position3", String.valueOf(startPosition));
+                Log.d("カーソルの位置がBeforeFirstかどうか", String.valueOf(cursor.isBeforeFirst()));
 
-                    int fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
-                    Long id = cursor.getLong(fieldIndex);
-                    Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                if (startPosition >= 0) {
 
-                    imageView.setImageURI(imageUri);
+                    if(startPosition == 0){
+                        cursor.moveToLast();
+                        startPosition = cursor.getPosition();
+                    }
+
+                    if (cursor.moveToPosition(startPosition)) {
+                        cursor.moveToPrevious();
+
+                        Log.d("Position3", String.valueOf(startPosition));
+
+                        int fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
+                        Long id = cursor.getLong(fieldIndex);
+                        Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+
+                        imageView.setImageURI(imageUri);
+                    }
+
+                    //cursor.moveToPosition(startPosition);
+                    startPosition = cursor.getPosition();
+                    Log.d("カーソルの位置がBeforeFirstかどうか", String.valueOf(cursor.isBeforeFirst()));
+
+
+                     startPosition = cursor.getPosition();
+                     cursor.close();
                 }
-
-            //cursor.moveToPosition(startPosition);
-            startPosition = cursor.getPosition();
-            Log.d("カーソルの位置がBeforeFirstかどうか", String.valueOf(cursor.isBeforeFirst()));
-            cursor.close();
             }
 
         } else if (v.getId() == R.id.next_button){
             Log.d("UI_PARTS", "ボタン3をタップしました");
 
-            if (startPosition <= ccount - 2) {
-                if (cursor.moveToPosition(startPosition)) {
-                    cursor.moveToNext();
-                    Log.d("Position2", String.valueOf(startPosition));
-                    Log.d("Carsor数", String.valueOf(cursor.getColumnCount()));
-                    Log.d("Carsor数", String.valueOf(cursor.getCount()));
-                    int fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
-                    Long id = cursor.getLong(fieldIndex);
-                    Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            if(isStart == false) {
 
-                    imageView.setImageURI(imageUri);
-                }
+                if (startPosition <= ccount - 2) {
+                    if (cursor.moveToPosition(startPosition)) {
+                        cursor.moveToNext();
+                        Log.d("Position2", String.valueOf(startPosition));
+                        Log.d("Carsor数", String.valueOf(cursor.getColumnCount()));
+                        Log.d("Carsor数", String.valueOf(cursor.getCount()));
+                        int fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
+                        Long id = cursor.getLong(fieldIndex);
+                        Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+
+                        imageView.setImageURI(imageUri);
+                    }
 
                 /* 実験 後で消す　*/
-               // cursor.moveToLast();
-               // Log.d("LastのInt", String.valueOf(cursor.getPosition()));
-               // Log.d("LastのIntかどうか", String.valueOf(cursor.isAfterLast()));
+                    // cursor.moveToLast();
+                    // Log.d("LastのInt", String.valueOf(cursor.getPosition()));
+                    // Log.d("LastのIntかどうか", String.valueOf(cursor.isAfterLast()));
 
-                //cursor.moveToPosition(startPosition);
-                startPosition = cursor.getPosition();
+                    //cursor.moveToPosition(startPosition);
+                    startPosition = cursor.getPosition();
 
-                cursor.close();
+                    if(startPosition == ccount -1){
+                        startPosition = 0;
+                    }
+
+                    cursor.close();
+                }
             }
         }
     }
